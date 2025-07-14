@@ -19,7 +19,7 @@ import {
 
 import { useState, useEffect } from "react";
 
-
+import BASE_URL from "../../config";
 
 import axios from "axios";
 
@@ -42,13 +42,13 @@ const DashboardPage = () => {
 
     // ✅ Then define useEffects
     useEffect(() => {
-        axios.get("http://192.168.1.6:5000/api/leads")
+        axios.get(`${BASE_URL}/api/leads`)
             .then((res) => setLeads(res.data))
             .catch((err) => console.error("❌ Lead fetch failed:", err));
     }, []);
 
     useEffect(() => {
-        axios.get("http://192.168.1.6:5000/api/leads/today")
+        axios.get(`${BASE_URL}/api/leads/today`)
             .then((res) => {
                 console.log("🔥 Today's Leads", res.data);
                 setTodaysLeads(res.data);
@@ -57,28 +57,14 @@ const DashboardPage = () => {
     }, []);
 
 useEffect(() => {
-  fetch(`http://192.168.1.6:5000/api/leads/top-service?limit=${limit}`)
+  fetch(`${BASE_URL}/api/leads/top-service?limit=${limit}`)
     .then((res) => res.json())
     .then((data) => setTopService(data))
     .catch((err) => console.error("Failed to fetch top services", err));
 }, [limit]);
-    // useEffect(() => {
-    //   axios.get("http:// 192.168.1.9:5000/api/leads/total")
-    //     .then(res => setTotalLeads(res.data.total));
-
-    //   axios.get("http:// 192.168.1.9:5000/api/leads/today/count")
-    //     .then(res => setTodaysLeadsCount(res.data.total));
-
-    //   axios.get("http:// 192.168.1.9:5000/api/leads/weekly")
-    //     .then(res => setWeeklyLeads(res.data.total));
-
-    //   axios.get("http:// 192.168.1.9:5000/api/leads/top-service")
-    //     .then(res => setTopService(res.data));
-    // }, []);
-
-
+   
     useEffect(() => {
-        axios.get("http://192.168.1.6:5000/api/leads/total")
+        axios.get(`${BASE_URL}/api/leads/total`)
             .then((res) => {
                 setTotalLeads(res.data.total);
             })
@@ -89,14 +75,14 @@ useEffect(() => {
 
     useEffect(() => {
         axios
-            .get("http://192.168.1.6:5000/api/leads/today/count")
+            .get(`${BASE_URL}/api/leads/today/count`)
             .then((res) => setTodaysLeadCount(res.data.total))
             .catch((err) => console.error("❌ Error fetching today's leads count:", err));
     }, []);
 
     useEffect(() => {
         axios
-            .get("http://192.168.1.6:5000/api/leads/weekly")
+            .get(`${BASE_URL}/api/leads/weekly`)
             .then((res) => setWeeklyLeads(res.data.total))
             .catch((err) => console.error("❌ Error fetching weekly leads:", err));
     }, []);

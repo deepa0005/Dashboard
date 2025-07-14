@@ -22,7 +22,7 @@ const ResetPasswordPage = () => {
     }
 
     try {
-      const res = await axios.post(`http://192.168.1.6:5000/api/admin/reset-password/${token}`, {
+      const res = await axios.post(`${BASE_URL}/api/admin/reset-password/${token}`, {
         password,
       });
 

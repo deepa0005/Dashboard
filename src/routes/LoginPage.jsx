@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import BASE_URL from "../../config";
 
 const LoginPage = () => {
   const [form, setForm] = useState({ username: "", password: "" });
@@ -22,7 +23,7 @@ const LoginPage = () => {
     setMessage("");
 
     try {
-      const res = await axios.post("http://192.168.1.6:5000/api/admin/login", form, {
+      const res = await axios.post(`${BASE_URL}/api/admin/login`, form, {
         withCredentials: true,
       });
 
@@ -40,7 +41,7 @@ const LoginPage = () => {
     setMessage("");
 
     try {
-      const res = await axios.post("http://192.168.1.6:5000/api/admin/forgot-password", {
+      const res = await axios.post(`${BASE_URL}/api/admin/forgot-password`, {
         email: forgotEmail,
       });
 
