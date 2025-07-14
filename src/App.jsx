@@ -1,15 +1,41 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-
 import { ThemeProvider } from "@/contexts/theme-context";
 
-import Layout from "@/routes/layout";
-import DashboardPage from "@/routes/dashboard/page";
+// Layout & Pages
+import Layout from "./routes/layout";
+import DashboardPage from "./routes/dashboard/page";
+import Analytics from "./routes/dashboard/Analytics";
+import Reports from "./routes/dashboard/Reports";
+import LeadsTable from "./routes/dashboard/LeadsTable";
+import ProfilePage from "./routes/dashboard/ProfilePage";
+import SettingsPage from "./routes/dashboard/SettingsPage";
+import LoginPage from "./routes/LoginPage";
+import ResetPasswordPage from "./routes/ResetPasswordPage";
+
+
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  return token ? children : <Navigate to="/login" />;
+};
 
 function App() {
     const router = createBrowserRouter([
+
         {
-            path: "/",
-            element: <Layout />,
+            path: "/login", // 👈 Login route
+            element: <LoginPage />,
+        }, 
+         {
+    path: "/reset-password/:token", // 👈 Public route
+    element: <ResetPasswordPage />,
+  },
+        {
+              path: "/",
+    element: (
+      <ProtectedRoute>
+        <Layout />
+      </ProtectedRoute>
+    ),
             children: [
                 {
                     index: true,
@@ -17,11 +43,23 @@ function App() {
                 },
                 {
                     path: "analytics",
-                    element: <h1 className="title">Analytics</h1>,
+                    element: <Analytics />,
                 },
                 {
                     path: "reports",
-                    element: <h1 className="title">Reports</h1>,
+                    element: <Reports />,
+                },
+                {
+                    path: "LeadsTable",
+                    element: <LeadsTable />,
+                },
+                {
+                    path: "profile", // ✅ Profile route added here
+                    element: <ProfilePage />,
+                },
+                {
+                    path: "settings",
+                    element: <SettingsPage />,
                 },
                 {
                     path: "customers",
@@ -46,10 +84,6 @@ function App() {
                 {
                     path: "inventory",
                     element: <h1 className="title">Inventory</h1>,
-                },
-                {
-                    path: "settings",
-                    element: <h1 className="title">Settings</h1>,
                 },
             ],
         },
