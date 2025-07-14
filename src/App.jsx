@@ -1,4 +1,5 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+
 import { ThemeProvider } from "@/contexts/theme-context";
 
 // Layout & Pages
