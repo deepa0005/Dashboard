@@ -1,38 +1,36 @@
 import React, { useState, useEffect } from "react";
 import defaultImg from "@/assets/profile-image.jpg";
 import { Footer } from "../../layouts/footer";
-import api from "../../utils/axios"; // ✅ Axios instance
+import api from "../../utils/axios";
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
 
-  // ✅ Fetch profile only
- useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const res = await api.get("/profile");
-      setProfile(res.data); // ✅ Clean and accurate
-    } catch (err) {
-      console.error("❌ Fetch Error:", err.response?.data || err.message);
-      setError("Failed to load profile.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/profile");
+        setProfile(res.data);
+      } catch (err) {
+        console.error("❌ Fetch Error:", err.response?.data || err.message);
+        setError("Failed to load profile.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
-  fetchProfile();
-}, []);
-
-  // ✅ Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProfile((prev) => ({ ...prev, [name]: value }));
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // ✅ Handle profile photo change
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     setPhoto(file);
@@ -44,9 +42,20 @@ const ProfilePage = () => {
     }
   };
 
-  // ✅ Save updated profile
+  const validateForm = () => {
+    const errors = {};
+    if (!profile.full_name) errors.full_name = "Full name is required";
+    if (!profile.email) errors.email = "Email is required";
+    if (!profile.phone) errors.phone = "Phone number is required";
+    return errors;
+  };
+
   const handleSave = async () => {
-    if (!profile) return;
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
 
     const formData = new FormData();
     Object.entries(profile).forEach(([key, value]) => {
@@ -64,7 +73,6 @@ const ProfilePage = () => {
 
       alert("✅ Profile updated successfully!");
 
-      // Refetch updated profile
       const refreshed = await api.get("/profile");
       setProfile(refreshed.data.data || refreshed.data);
       setPhoto(null);
@@ -79,18 +87,17 @@ const ProfilePage = () => {
   if (!profile) return <div className="p-4 text-red-500">Profile not found.</div>;
 
   return (
-    <div className="flex flex-col gap-y-6 p-4">
+    <div className="flex flex-col gap-y-6 p-4 text-slate-900 dark:text-white">
       <h1 className="text-2xl font-bold">Profile</h1>
 
-      {/* Profile Info */}
-      <div className="card p-6 flex flex-col md:flex-row gap-6 items-center">
+      <div className="card p-6 flex flex-col md:flex-row gap-6 items-center bg-white dark:bg-slate-800">
         <div className="flex flex-col items-center gap-4">
           <img
             src={profile.profile_pic || defaultImg}
             alt="Profile"
             className="w-32 h-32 rounded-full object-cover border-4 border-blue-500"
           />
-          <label className="text-sm text-blue-600 hover:underline cursor-pointer">
+          <label className="text-sm text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
             Change Photo
             <input type="file" onChange={handlePhotoChange} hidden />
           </label>
@@ -108,7 +115,7 @@ const ProfilePage = () => {
             ["Merchant ID", "merchant_id"],
           ].map(([label, key]) => (
             <div key={key}>
-              <label className="block mb-1 text-sm font-medium text-slate-700">
+              <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
                 {label}
               </label>
               <input
@@ -116,31 +123,42 @@ const ProfilePage = () => {
                 name={key}
                 value={profile[key] || ""}
                 onChange={handleChange}
-                className="input border border-slate-300 rounded px-3 py-2 w-full"
+                className={`input border border-slate-300 bg-white dark:bg-slate-700 dark:text-white rounded px-3 py-2 w-full ${
+                  formErrors[key] ? "border-red-500" : ""
+                }`}
               />
+              {formErrors[key] && (
+                <p className="text-red-500 text-xs mt-1">{formErrors[key]}</p>
+              )}
             </div>
           ))}
 
           <div>
-            <label className="block mb-1 text-sm font-medium text-slate-700">Role</label>
+            <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">Role</label>
             <input
               type="text"
               name="role"
               value={profile.role || ""}
               readOnly
-              className="input bg-gray-100 text-gray-600 border border-slate-300 rounded px-3 py-2 w-full cursor-not-allowed"
+              className="input bg-gray-100 dark:bg-slate-600 text-gray-600 dark:text-gray-300 border border-slate-300 rounded px-3 py-2 w-full cursor-not-allowed"
             />
           </div>
         </div>
       </div>
 
-      {/* Save Button */}
-      <div className="flex justify-end">
+      {/* Centered Buttons */}
+      <div className="flex justify-center gap-4">
         <button
           onClick={handleSave}
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow"
         >
           Save Changes
+        </button>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded shadow"
+        >
+          Cancel
         </button>
       </div>
 
