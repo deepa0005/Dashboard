@@ -6,33 +6,24 @@ import api from "../../utils/axios"; // ✅ Axios instance
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [photo, setPhoto] = useState(null);
-  const [subadmins, setSubadmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Fetch profile and subadmins
+  // ✅ Fetch profile only
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchProfile = async () => {
       try {
-        const [profileRes, subadminRes] = await Promise.all([
-          api.get("/profile"),
-          api.get("/subadmins"),
-        ]);
-
-        console.log("✅ Profile:", profileRes.data);
-        console.log("✅ Subadmins:", subadminRes.data);
-
-        setProfile(profileRes.data.data || profileRes.data);
-        setSubadmins(subadminRes.data.subadmins || []);
+        const res = await api.get("/profile");
+        setProfile(res.data.data || res.data);
       } catch (err) {
         console.error("❌ Fetch Error:", err.response?.data || err.message);
-        setError("Failed to load profile or subadmins.");
+        setError("Failed to load profile.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchProfile();
   }, []);
 
   // ✅ Handle input changes
@@ -41,7 +32,7 @@ const ProfilePage = () => {
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Handle profile photo
+  // ✅ Handle profile photo change
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     setPhoto(file);
@@ -83,7 +74,6 @@ const ProfilePage = () => {
     }
   };
 
-  // ✅ Handle UI loading/error
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
   if (!profile) return <div className="p-4 text-red-500">Profile not found.</div>;
@@ -152,44 +142,6 @@ const ProfilePage = () => {
         >
           Save Changes
         </button>
-      </div>
-
-      {/* Subadmin List */}
-      <div className="card p-6 mt-4">
-        <h2 className="text-xl font-semibold mb-4">Subadmin List</h2>
-        {subadmins.length === 0 ? (
-          <p className="text-gray-500">No subadmins found.</p>
-        ) : (
-          <table className="w-full table-auto text-sm border border-slate-300">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">#</th>
-                <th className="p-2 border">Name</th>
-                <th className="p-2 border">Email</th>
-                <th className="p-2 border">Role</th>
-                <th className="p-2 border">Permissions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subadmins.map((sub, i) => (
-                <tr key={sub.id || i} className="text-center">
-                  <td className="p-2 border">{i + 1}</td>
-                  <td className="p-2 border">{sub.full_name}</td>
-                  <td className="p-2 border">{sub.email}</td>
-                  <td className="p-2 border">{sub.role}</td>
-                  <td className="p-2 border">
-                    {sub.permissions && typeof sub.permissions === "object"
-                      ? Object.entries(sub.permissions)
-                          .filter(([_, val]) => val)
-                          .map(([perm]) => perm)
-                          .join(", ")
-                      : "N/A"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
       </div>
 
       <Footer />
