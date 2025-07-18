@@ -12,11 +12,12 @@ import ProfilePage from "./routes/dashboard/ProfilePage";
 import SettingsPage from "./routes/dashboard/SettingsPage";
 import LoginPage from "./routes/LoginPage";
 import ResetPasswordPage from "./routes/ResetPasswordPage";
+import SubadminForm from "./routes/dashboard/SubadminForm";
 
 
 const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/login" />;
+    const token = localStorage.getItem("token");
+    return token ? children : <Navigate to="/login" />;
 };
 
 function App() {
@@ -25,18 +26,18 @@ function App() {
         {
             path: "/login", // 👈 Login route
             element: <LoginPage />,
-        }, 
-         {
-    path: "/reset-password/:token", // 👈 Public route
-    element: <ResetPasswordPage />,
-  },
+        },
         {
-              path: "/",
-    element: (
-      <ProtectedRoute>
-        <Layout />
-      </ProtectedRoute>
-    ),
+            path: "/reset-password/:token", // 👈 Public route
+            element: <ResetPasswordPage />,
+        },
+        {
+            path: "/",
+            element: (
+                <ProtectedRoute>
+                    <Layout />
+                </ProtectedRoute>
+            ),
             children: [
                 {
                     index: true,
@@ -61,6 +62,10 @@ function App() {
                 {
                     path: "settings",
                     element: <SettingsPage />,
+                },
+                {
+                    path: "subadmin", // ✅ ✅ Subadmin route added here
+                    element: <SubadminForm />,
                 },
                 {
                     path: "customers",

@@ -82,6 +82,7 @@ export const Header = ({ collapsed, setCollapsed }) => {
               >
                 My Profile
               </Link>
+
               <button
                 onClick={() => {
                   navigate("/settings");
@@ -91,23 +92,29 @@ export const Header = ({ collapsed, setCollapsed }) => {
               >
                 Settings
               </button>
-             <button
-  onClick={() => {
-    // ✅ Clear token from localStorage
-    localStorage.removeItem("token");
 
-    // ✅ Hide dropdown
-    setShowDropdown(false);
+              {/* ✅ Add this only if the logged-in user is admin */}
+              <Link
+                to="/subadmin"
+                className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 text-blue-500"
+                onClick={() => setShowDropdown(false)}
+              >
+                Manage Subadmins
+              </Link>
 
-    // ✅ Redirect to login
-    navigate("/login");
-  }}
-  className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 text-red-500"
->
-  Logout
-</button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  setShowDropdown(false);
+                  navigate("/login");
+                }}
+                className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 text-red-500"
+              >
+                Logout
+              </button>
             </div>
           )}
+
         </div>
       </div>
     </header>
