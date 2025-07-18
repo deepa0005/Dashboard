@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import defaultImg from "@/assets/profile-image.jpg";
 import { Footer } from "../../layouts/footer";
-import api from "../../utils/axios"; // ✅ Axios instance with baseURL + withCredentials
+import api from "../../utils/axios"; // ✅ Axios instance
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
@@ -10,19 +10,23 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Fetch profile & subadmin list
+  // ✅ Fetch profile and subadmins
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [profileRes, subadminRes] = await Promise.all([
           api.get("/profile"),
-          api.get("/subadmins")
+          api.get("/subadmins"),
         ]);
+
+        console.log("✅ Profile:", profileRes.data);
+        console.log("✅ Subadmins:", subadminRes.data);
+
         setProfile(profileRes.data.data || profileRes.data);
         setSubadmins(subadminRes.data.subadmins || []);
       } catch (err) {
-        console.error("❌ Failed to load data", err);
-        setError("Failed to load profile or subadmin list");
+        console.error("❌ Fetch Error:", err.response?.data || err.message);
+        setError("Failed to load profile or subadmins.");
       } finally {
         setLoading(false);
       }
@@ -31,12 +35,13 @@ const ProfilePage = () => {
     fetchData();
   }, []);
 
-  // ✅ Handle form input changes
+  // ✅ Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ✅ Handle profile photo
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     setPhoto(file);
@@ -48,11 +53,15 @@ const ProfilePage = () => {
     }
   };
 
+  // ✅ Save updated profile
   const handleSave = async () => {
+    if (!profile) return;
+
     const formData = new FormData();
     Object.entries(profile).forEach(([key, value]) => {
       formData.append(key, value || "");
     });
+
     if (photo) {
       formData.append("profile_pic", photo);
     }
@@ -60,35 +69,38 @@ const ProfilePage = () => {
     try {
       await api.put("/update-profile", formData, {
         headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
       });
+
       alert("✅ Profile updated successfully!");
+
+      // Refetch updated profile
       const refreshed = await api.get("/profile");
       setProfile(refreshed.data.data || refreshed.data);
       setPhoto(null);
     } catch (err) {
-      console.error("❌ Failed to update profile", err);
-      alert("Something went wrong while updating profile.");
+      console.error("❌ Update Error:", err.response?.data || err.message);
+      alert("Failed to update profile.");
     }
   };
 
+  // ✅ Handle UI loading/error
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
   if (!profile) return <div className="p-4 text-red-500">Profile not found.</div>;
 
   return (
-    <div className="flex flex-col gap-y-4">
-      <h1 className="title">Profile</h1>
+    <div className="flex flex-col gap-y-6 p-4">
+      <h1 className="text-2xl font-bold">Profile</h1>
 
-      {/* Profile Card */}
+      {/* Profile Info */}
       <div className="card p-6 flex flex-col md:flex-row gap-6 items-center">
         <div className="flex flex-col items-center gap-4">
           <img
             src={profile.profile_pic || defaultImg}
             alt="Profile"
-            className="w-32 h-32 rounded-full object-cover border-4 border-blue-500 dark:border-blue-600"
+            className="w-32 h-32 rounded-full object-cover border-4 border-blue-500"
           />
-          <label className="text-sm text-blue-600 hover:underline dark:text-blue-400 cursor-pointer">
+          <label className="text-sm text-blue-600 hover:underline cursor-pointer">
             Change Photo
             <input type="file" onChange={handlePhotoChange} hidden />
           </label>
@@ -106,7 +118,7 @@ const ProfilePage = () => {
             ["Merchant ID", "merchant_id"],
           ].map(([label, key]) => (
             <div key={key}>
-              <label className="block mb-1 text-sm font-medium text-slate-600 dark:text-slate-300">
+              <label className="block mb-1 text-sm font-medium text-slate-700">
                 {label}
               </label>
               <input
@@ -114,18 +126,19 @@ const ProfilePage = () => {
                 name={key}
                 value={profile[key] || ""}
                 onChange={handleChange}
-                className="input bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white"
+                className="input border border-slate-300 rounded px-3 py-2 w-full"
               />
             </div>
           ))}
+
           <div>
-            <label className="block mb-1 text-sm font-medium text-slate-600 dark:text-slate-300">Role</label>
+            <label className="block mb-1 text-sm font-medium text-slate-700">Role</label>
             <input
               type="text"
               name="role"
               value={profile.role || ""}
               readOnly
-              className="input bg-gray-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white cursor-not-allowed"
+              className="input bg-gray-100 text-gray-600 border border-slate-300 rounded px-3 py-2 w-full cursor-not-allowed"
             />
           </div>
         </div>
@@ -135,20 +148,20 @@ const ProfilePage = () => {
       <div className="flex justify-end">
         <button
           onClick={handleSave}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow"
         >
           Save Changes
         </button>
       </div>
 
-      {/* Subadmin List Section */}
-      <div className="card p-6 mt-6">
+      {/* Subadmin List */}
+      <div className="card p-6 mt-4">
         <h2 className="text-xl font-semibold mb-4">Subadmin List</h2>
         {subadmins.length === 0 ? (
           <p className="text-gray-500">No subadmins found.</p>
         ) : (
-          <table className="w-full table-auto border border-slate-300 dark:border-slate-600 text-sm">
-            <thead className="bg-gray-100 dark:bg-slate-800">
+          <table className="w-full table-auto text-sm border border-slate-300">
+            <thead className="bg-gray-100">
               <tr>
                 <th className="p-2 border">#</th>
                 <th className="p-2 border">Name</th>
