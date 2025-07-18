@@ -13,6 +13,7 @@ import SettingsPage from "./routes/dashboard/SettingsPage";
 import LoginPage from "./routes/LoginPage";
 import ResetPasswordPage from "./routes/ResetPasswordPage";
 import SubadminForm from "./routes/dashboard/SubadminForm";
+import SubadminList from "./routes/dashboard/SubadminList";
 
 
 const ProtectedRoute = ({ children }) => {
@@ -66,6 +67,10 @@ function App() {
                 {
                     path: "subadmin", // ✅ ✅ Subadmin route added here
                     element: <SubadminForm />,
+                },
+                {
+                    path: "subadmin-list",
+                    element: <SubadminList/>,
                 },
                 {
                     path: "customers",
