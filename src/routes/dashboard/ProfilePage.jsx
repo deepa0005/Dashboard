@@ -7,163 +7,167 @@ const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [saving, setSaving] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
+  // Fetch profile data
+  const fetchProfile = async () => {
+    try {
+      const res = await api.get("/profile");
+      setProfile(res.data);
+    } catch (error) {
+      console.error("Failed to fetch profile", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await api.get("/profile");
-        setProfile(res.data);
-      } catch (err) {
-        console.error("❌ Fetch Error:", err.response?.data || err.message);
-        setError("Failed to load profile.");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProfile();
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProfile((prev) => ({ ...prev, [name]: value }));
-    setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
-    setPhoto(file);
-    if (file) {
-      setProfile((prev) => ({
-        ...prev,
-        profile_pic: URL.createObjectURL(file),
-      }));
-    }
+    if (file) setPhoto(file);
   };
 
   const validateForm = () => {
     const errors = {};
-    if (!profile.full_name) errors.full_name = "Full name is required";
-    if (!profile.email) errors.email = "Email is required";
-    if (!profile.phone) errors.phone = "Phone number is required";
+    if (!profile.full_name?.trim()) errors.full_name = "Full name is required";
+    if (!profile.email?.trim()) errors.email = "Email is required";
+    if (!profile.phone?.trim()) errors.phone = "Phone is required";
     return errors;
   };
 
   const handleSave = async () => {
     const errors = validateForm();
-    if (Object.keys(errors).length > 0) {
+    if (Object.keys(errors).length) {
       setFormErrors(errors);
       return;
     }
 
     const formData = new FormData();
     Object.entries(profile).forEach(([key, value]) => {
-      formData.append(key, value || "");
+      if (value !== undefined && value !== null) formData.append(key, value);
     });
-
-    if (photo) {
-      formData.append("profile_pic", photo);
-    }
+    if (photo) formData.append("profile_pic", photo);
 
     try {
+      setSaving(true);
       await api.put("/update-profile", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      alert("✅ Profile updated successfully!");
-
-      // Fix this 👇
-      const refreshed = await api.get("/profile");
-      setProfile(refreshed.data); // ✅ Simplified
+      console.log("✅ Profile updated successfully");
+      await fetchProfile(); // Refresh profile
       setPhoto(null);
-    } catch (err) {
-      console.error("❌ Update Error:", err.response?.data || err.message);
-      alert("Failed to update profile.");
+      setFormErrors({});
+    } catch (error) {
+      console.error("❌ Failed to update profile:", error);
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (loading) return <div className="p-4">Loading...</div>;
-  if (error) return <div className="p-4 text-red-500">{error}</div>;
-  if (!profile) return <div className="p-4 text-red-500">Profile not found.</div>;
+  const handleCancel = () => {
+    fetchProfile(); // Reset form
+    setPhoto(null);
+    setFormErrors({});
+  };
+
+  if (loading || !profile) return <div className="text-center p-4">Loading profile...</div>;
 
   return (
-    <div className="flex flex-col gap-y-6 p-4 text-slate-900 dark:text-white">
-      <h1 className="text-2xl font-bold">Profile</h1>
+    <>
+      <div className="p-4 md:p-8 max-w-3xl mx-auto bg-white dark:bg-slate-800 shadow-md rounded-lg mt-10">
+        <h1 className="text-3xl font-semibold mb-6 text-center text-gray-800 dark:text-white">
+          Admin Profile
+        </h1>
 
-      <div className="card p-6 flex flex-col md:flex-row gap-6 items-center bg-white dark:bg-slate-800">
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center mb-6">
           <img
-            src={profile.profile_pic || defaultImg}
+            src={
+              photo
+                ? URL.createObjectURL(photo)
+                : profile.profile_pic
+                ? `${api.defaults.baseURL}${profile.profile_pic}`
+                : defaultImg
+            }
             alt="Profile"
-            className="w-32 h-32 rounded-full object-cover border-4 border-blue-500"
+            className="w-32 h-32 rounded-full object-cover mb-2"
           />
-          <label className="text-sm text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
-            Change Photo
-            <input type="file" onChange={handlePhotoChange} hidden />
-          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            className="text-sm text-gray-500"
+          />
         </div>
 
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
-            ["Full Name", "full_name"],
-            ["Email", "email"],
-            ["Phone", "phone"],
-            ["Address", "address"],
-            ["Language", "language"],
-            ["Time Zone", "time_zone"],
-            ["Nationality", "nationality"],
-            ["Merchant ID", "merchant_id"],
-          ].map(([label, key]) => (
-            <div key={key}>
-              <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
-                {label}
-              </label>
+            ["full_name", "Full Name", "text"],
+            ["email", "Email", "email"],
+            ["phone", "Phone", "text"],
+            ["address", "Address", "text"],
+            ["language", "Language", "text"],
+            ["time_zone", "Time Zone", "text"],
+            ["nationality", "Nationality", "text"],
+            ["role", "Role", "text"],
+          ].map(([name, label, type]) => (
+            <div key={name}>
+              <label className="block text-gray-700 dark:text-gray-300 mb-1">{label}</label>
               <input
-                type="text"
-                name={key}
-                value={profile[key] || ""}
+                type={type}
+                name={name}
+                value={profile[name] || ""}
                 onChange={handleChange}
-                className={`input border border-slate-300 bg-white dark:bg-slate-700 dark:text-white rounded px-3 py-2 w-full ${formErrors[key] ? "border-red-500" : ""
-                  }`}
+                className="input bg-gray-100 dark:bg-slate-600 text-gray-600 dark:text-gray-300 border border-slate-300 rounded px-3 py-2 w-full"
               />
-              {formErrors[key] && (
-                <p className="text-red-500 text-xs mt-1">{formErrors[key]}</p>
+              {formErrors[name] && (
+                <p className="text-red-500 text-sm mt-1">{formErrors[name]}</p>
               )}
             </div>
           ))}
 
+          {/* Merchant ID (read-only) */}
           <div>
-            <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">Role</label>
+            <label className="block text-gray-700 dark:text-gray-300 mb-1">Merchant ID</label>
             <input
               type="text"
-              name="role"
-              value={profile.role || ""}
+              name="merchant_id"
+              value={profile.merchant_id || ""}
               readOnly
               className="input bg-gray-100 dark:bg-slate-600 text-gray-600 dark:text-gray-300 border border-slate-300 rounded px-3 py-2 w-full cursor-not-allowed"
             />
           </div>
         </div>
-      </div>
 
-      {/* Centered Buttons */}
-      <div className="flex justify-center gap-4">
-        <button
-          onClick={handleSave}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow"
-        >
-          Save Changes
-        </button>
-        <button
-          onClick={() => window.location.reload()}
-          className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded shadow"
-        >
-          Cancel
-        </button>
+        <div className="flex justify-end gap-4 mt-6">
+          <button
+            onClick={handleCancel}
+            className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded shadow"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className={`bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow ${
+              saving ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
       </div>
 
       <Footer />
-    </div>
+    </>
   );
 };
 
