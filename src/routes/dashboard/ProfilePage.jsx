@@ -73,8 +73,9 @@ const ProfilePage = () => {
 
       alert("✅ Profile updated successfully!");
 
+      // Fix this 👇
       const refreshed = await api.get("/profile");
-      setProfile(refreshed.data.data || refreshed.data);
+      setProfile(refreshed.data); // ✅ Simplified
       setPhoto(null);
     } catch (err) {
       console.error("❌ Update Error:", err.response?.data || err.message);
@@ -123,9 +124,8 @@ const ProfilePage = () => {
                 name={key}
                 value={profile[key] || ""}
                 onChange={handleChange}
-                className={`input border border-slate-300 bg-white dark:bg-slate-700 dark:text-white rounded px-3 py-2 w-full ${
-                  formErrors[key] ? "border-red-500" : ""
-                }`}
+                className={`input border border-slate-300 bg-white dark:bg-slate-700 dark:text-white rounded px-3 py-2 w-full ${formErrors[key] ? "border-red-500" : ""
+                  }`}
               />
               {formErrors[key] && (
                 <p className="text-red-500 text-xs mt-1">{formErrors[key]}</p>
