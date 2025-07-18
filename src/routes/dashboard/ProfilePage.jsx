@@ -10,21 +10,21 @@ const ProfilePage = () => {
   const [error, setError] = useState(null);
 
   // ✅ Fetch profile only
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await api.get("/profile");
-        setProfile(res.data.data || res.data);
-      } catch (err) {
-        console.error("❌ Fetch Error:", err.response?.data || err.message);
-        setError("Failed to load profile.");
-      } finally {
-        setLoading(false);
-      }
-    };
+ useEffect(() => {
+  const fetchProfile = async () => {
+    try {
+      const res = await api.get("/profile");
+      setProfile(res.data); // ✅ Clean and accurate
+    } catch (err) {
+      console.error("❌ Fetch Error:", err.response?.data || err.message);
+      setError("Failed to load profile.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchProfile();
-  }, []);
+  fetchProfile();
+}, []);
 
   // ✅ Handle input changes
   const handleChange = (e) => {
