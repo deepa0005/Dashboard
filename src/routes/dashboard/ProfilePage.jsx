@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import defaultImg from "@/assets/profile-image.jpg";
 import { Footer } from "../../layouts/footer";
-import api from "../../utils/axios"; // ✅ Axios instance
+import api from "../../utils/axios"; // ✅ Import your custom Axios instance
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
@@ -10,41 +10,35 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Fetch profile and subadmins
+  // ✅ Fetch profile from backend
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchProfile = async () => {
       try {
-        const [profileRes, subadminRes] = await Promise.all([
-          api.get("/profile"),
-          api.get("/subadmins"),
-        ]);
-
-        console.log("✅ Profile:", profileRes.data);
-        console.log("✅ Subadmins:", subadminRes.data);
-
-        setProfile(profileRes.data.data || profileRes.data);
-        setSubadmins(subadminRes.data.subadmins || []);
+        const res = await api.get("/profile"); // 👈 relative path — baseURL handles root
+        console.log("Profile response:", res.data);
+        setProfile(res.data.data || res.data); // ✅ support both { data: {...} } and plain object
       } catch (err) {
-        console.error("❌ Fetch Error:", err.response?.data || err.message);
-        setError("Failed to load profile or subadmins.");
+        console.error("❌ Failed to load profile", err);
+        setError("Failed to load profile");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchProfile();
   }, []);
 
-  // ✅ Handle input changes
+  // ✅ Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Handle profile photo
+  // ✅ Handle photo selection
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     setPhoto(file);
+    // Optional: preview selected image immediately
     if (file) {
       setProfile((prev) => ({
         ...prev,
@@ -53,54 +47,58 @@ const ProfilePage = () => {
     }
   };
 
-  // ✅ Save updated profile
-  const handleSave = async () => {
-    if (!profile) return;
+  // ✅ Handle Save action
+ const handleSave = async () => {
+  const formData = new FormData();
 
-    const formData = new FormData();
-    Object.entries(profile).forEach(([key, value]) => {
-      formData.append(key, value || "");
+  // Append all profile fields
+  Object.entries(profile).forEach(([key, value]) => {
+    formData.append(key, value || "");
+  });
+
+  // Only add new photo if selected
+  if (photo) {
+    formData.append("profile_pic", photo);
+  }
+
+  try {
+    const response = await api.put("/update-profile", formData, {
+       headers: {
+    "Content-Type": "multipart/form-data",
+  },
+   withCredentials: true,
     });
 
-    if (photo) {
-      formData.append("profile_pic", photo);
-    }
+    alert("✅ Profile updated successfully!");
 
-    try {
-      await api.put("/update-profile", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+    // Refetch updated profile after save
+    const refreshed = await api.get("/profile");
+    setProfile(refreshed.data.data || refreshed.data);
+    setPhoto(null); // clear photo selection
+  } catch (err) {
+    console.error("❌ Failed to update profile", err.response || err);
+    alert("Something went wrong while updating profile.");
+  }
+};
 
-      alert("✅ Profile updated successfully!");
 
-      // Refetch updated profile
-      const refreshed = await api.get("/profile");
-      setProfile(refreshed.data.data || refreshed.data);
-      setPhoto(null);
-    } catch (err) {
-      console.error("❌ Update Error:", err.response?.data || err.message);
-      alert("Failed to update profile.");
-    }
-  };
-
-  // ✅ Handle UI loading/error
+  // ✅ Render logic
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
   if (!profile) return <div className="p-4 text-red-500">Profile not found.</div>;
 
   return (
-    <div className="flex flex-col gap-y-6 p-4">
-      <h1 className="text-2xl font-bold">Profile</h1>
+    <div className="flex flex-col gap-y-4">
+      <h1 className="title">Profile</h1>
 
-      {/* Profile Info */}
       <div className="card p-6 flex flex-col md:flex-row gap-6 items-center">
         <div className="flex flex-col items-center gap-4">
           <img
-            src={profile.profile_pic || defaultImg}
-            alt="Profile"
-            className="w-32 h-32 rounded-full object-cover border-4 border-blue-500"
-          />
-          <label className="text-sm text-blue-600 hover:underline cursor-pointer">
+  src={profile.profile_pic || defaultImg}
+  alt="Profile"
+  className="w-32 h-32 rounded-full object-cover border-4 border-blue-500 dark:border-blue-600"
+/>
+          <label className="text-sm text-blue-600 hover:underline dark:text-blue-400 cursor-pointer">
             Change Photo
             <input type="file" onChange={handlePhotoChange} hidden />
           </label>
@@ -118,78 +116,37 @@ const ProfilePage = () => {
             ["Merchant ID", "merchant_id"],
           ].map(([label, key]) => (
             <div key={key}>
-              <label className="block mb-1 text-sm font-medium text-slate-700">
-                {label}
-              </label>
+              <label className="block mb-1 text-sm font-medium text-slate-600 dark:text-slate-300">{label}</label>
               <input
                 type="text"
                 name={key}
                 value={profile[key] || ""}
                 onChange={handleChange}
-                className="input border border-slate-300 rounded px-3 py-2 w-full"
+                className="input bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white"
               />
             </div>
           ))}
 
           <div>
-            <label className="block mb-1 text-sm font-medium text-slate-700">Role</label>
+            <label className="block mb-1 text-sm font-medium text-slate-600 dark:text-slate-300">Role</label>
             <input
               type="text"
               name="role"
               value={profile.role || ""}
               readOnly
-              className="input bg-gray-100 text-gray-600 border border-slate-300 rounded px-3 py-2 w-full cursor-not-allowed"
+              className="input bg-gray-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white cursor-not-allowed"
             />
           </div>
         </div>
       </div>
 
-      {/* Save Button */}
       <div className="flex justify-end">
         <button
           onClick={handleSave}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow"
+          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow"
         >
           Save Changes
         </button>
-      </div>
-
-      {/* Subadmin List */}
-      <div className="card p-6 mt-4">
-        <h2 className="text-xl font-semibold mb-4">Subadmin List</h2>
-        {subadmins.length === 0 ? (
-          <p className="text-gray-500">No subadmins found.</p>
-        ) : (
-          <table className="w-full table-auto text-sm border border-slate-300">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">#</th>
-                <th className="p-2 border">Name</th>
-                <th className="p-2 border">Email</th>
-                <th className="p-2 border">Role</th>
-                <th className="p-2 border">Permissions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subadmins.map((sub, i) => (
-                <tr key={sub.id || i} className="text-center">
-                  <td className="p-2 border">{i + 1}</td>
-                  <td className="p-2 border">{sub.full_name}</td>
-                  <td className="p-2 border">{sub.email}</td>
-                  <td className="p-2 border">{sub.role}</td>
-                  <td className="p-2 border">
-                    {sub.permissions && typeof sub.permissions === "object"
-                      ? Object.entries(sub.permissions)
-                          .filter(([_, val]) => val)
-                          .map(([perm]) => perm)
-                          .join(", ")
-                      : "N/A"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
       </div>
 
       <Footer />
