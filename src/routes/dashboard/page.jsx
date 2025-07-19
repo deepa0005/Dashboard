@@ -23,10 +23,14 @@ import BASE_URL from "../../config";
 
 import axios from "axios";
 
+import { useNavigate } from "react-router-dom";
+
+
+
 const DashboardPage = () => {
     const { theme } = useTheme();
 
-    const [limit, setLimit] = useState(3);
+    const [limit, setLimit] = useState(1);
 
     const [leads, setLeads] = useState([]);
 
@@ -38,8 +42,9 @@ const DashboardPage = () => {
     const [todaysLeadCount, setTodaysLeadCount] = useState(0);
     const [weeklyLeads, setWeeklyLeads] = useState(0);
 
-    const [topService, setTopService] = useState({ services: '', count: 0 });
+    const [topService, setTopService] = useState([]);
 
+  
     // ✅ Then define useEffects
     useEffect(() => {
         axios.get(`${BASE_URL}/api/leads`)
@@ -56,13 +61,13 @@ const DashboardPage = () => {
             .catch((err) => console.error("❌ Error fetching today's leads", err));
     }, []);
 
-useEffect(() => {
-  fetch(`${BASE_URL}/api/leads/top-service?limit=${limit}`)
-    .then((res) => res.json())
-    .then((data) => setTopService(data))
-    .catch((err) => console.error("Failed to fetch top services", err));
-}, [limit]);
-   
+    useEffect(() => {
+        fetch(`${BASE_URL}/api/leads/top-service?limit=${limit}`)
+            .then((res) => res.json())
+            .then((data) => setTopService(data))
+            .catch((err) => console.error("Failed to fetch top services", err));
+    }, [limit]);
+
     useEffect(() => {
         axios.get(`${BASE_URL}/api/leads/total`)
             .then((res) => {
@@ -91,13 +96,14 @@ useEffect(() => {
     return (
         <div className="flex flex-col gap-y-4">
             <h1 className="title">Dashboard</h1>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+
                 <div className="card">
-                    <div className="card-header">
-                        <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
-                            <Package size={26} />
+                    <div className="card-header flex items-center gap-3 px-3 py-2 sm:gap-2 sm:px-2 sm:py-1">
+                        <div className="w-fit rounded-md bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600 sm:p-1.5">
+                            <Package size={22} className="sm:w-5 sm:h-5" />
                         </div>
-                        <p className="card-title"> Total Leads</p>
+                        <p className="text-base font-semibold text-blue-700 dark:text-blue-400 sm:text-sm">Total Leads</p>
                     </div>
                     <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
                         <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">
@@ -138,6 +144,23 @@ useEffect(() => {
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
                             <TrendingUp size={18} />
                             15%
+                        </span>
+                    </div>
+                </div>
+                <div className="card">
+                    <div className="card-header">
+                        <div className="rounded-lg bg-green-500/20 p-2 text-green-600 transition-colors dark:bg-green-600/20 dark:text-green-400">
+                            <Users size={26} />
+                        </div>
+                        <p className="card-title">Total Users</p>
+                    </div>
+                    <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
+                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">
+                            4
+                        </p>
+                        <span className="flex w-fit items-center gap-x-2 rounded-full border border-green-500 px-2 py-1 font-medium text-green-600 dark:border-green-600 dark:text-green-400">
+                            <TrendingUp size={18} />
+                            8.5%
                         </span>
                     </div>
                 </div>
@@ -340,5 +363,6 @@ useEffect(() => {
         </div>
     );
 };
+
 
 export default DashboardPage;

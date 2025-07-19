@@ -27,7 +27,7 @@ const LoginPage = () => {
         withCredentials: true,
       });
 
-      localStorage.setItem("token", response.data.token); // Save token after login
+      localStorage.setItem("token", res.data.token); // Save token after login
       setMessage("Login successful!");
       navigate("/");
     } catch (err) {

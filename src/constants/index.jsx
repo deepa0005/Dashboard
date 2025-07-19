@@ -65,6 +65,21 @@ export const navbarLinks = [
         ],
     },
     {
+    title: "Subadmins",
+    links: [
+        {
+            label: "Create Subadmin",
+            icon: UserPlus,
+            path: "/subadmin",
+        },
+        {
+            label: "Subadmin List",
+            icon: Users,
+            path: "/subadmin-list",
+        },
+    ],
+},
+    {
         title: "Settings",
         links: [
             {
