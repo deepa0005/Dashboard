@@ -334,7 +334,7 @@ const DashboardPage = () => {
                                     <th className="table-head">#</th>
                                     <th className="table-head">Name</th>
                                     <th className="table-head">Email</th>
-                                    {/* <th className="table-head">Phone</th> */}
+                                    <th className="table-head">Phone</th>
                                     {/* <th className="table-head">City</th> */}
                                     <th className="table-head">Message</th>
                                     <th className="table-head">Submitted</th>
@@ -346,7 +346,7 @@ const DashboardPage = () => {
                                         <td className="table-cell">{index + 1}</td>
                                         <td className="table-cell">{lead.name}</td>
                                         <td className="table-cell">{lead.email}</td>
-                                        {/* <td className="table-cell">{lead.phone}</td> */}
+                                        <td className="table-cell">{lead.phone}</td>
                                         {/* <td className="table-cell">{lead.city || "-"}</td> */}
                                         <td className="table-cell">{lead.message}</td>
                                         <td className="table-cell">

@@ -6,33 +6,66 @@ const SubadminList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchSubadmins = async () => {
-      try {
-        const res = await axios.get(
-          "https://landing-page-nodejs-1.onrender.com/api/admin/get-subadmins",
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        setSubadmins(res.data.subadmins || []);
-      } catch (err) {
-        console.error("Full Axios error:", err.response || err);
-        if (err.response) {
-          setError(
-            `Error: ${err.response.status} - ${err.response.data.message || "Something went wrong"}`
-          );
-        } else {
-          setError("Unknown error occurred.");
-        }
+  // useEffect(() => {
+  //   const fetchSubadmins = async () => {
+  //     try {
+  //       const res = await axios.get(
+  //         "https://landing-page-nodejs-1.onrender.com/api/admin/get-subadmins",
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //           },
+  //         }
+  //       );
+  //      setSubadmins(res.data || []);
+  //     } catch (err) {
+  //       console.error("Full Axios error:", err.response || err);
+  //       if (err.response) {
+  //         setError(
+  //           `Error: ${err.response.status} - ${err.response.data.message || "Something went wrong"}`
+  //         );
+  //       } else {
+  //         setError("Unknown error occurred.");
+  //       }
+  //     }
+
+  //   };
+
+  //   fetchSubadmins();
+  // }, []);
+useEffect(() => {
+  const fetchSubadmins = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("No token found. Please log in again.");
+        return;
       }
 
-    };
+      const res = await axios.get(
+        "https://landing-page-nodejs-1.onrender.com/api/admin/get-subadmins",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    fetchSubadmins();
-  }, []);
+      setSubadmins(res.data || []);
+    } catch (err) {
+      console.error("Full Axios error:", err.response || err);
+      if (err.response) {
+        setError(
+          `Error: ${err.response.status} - ${err.response.data.message || "Something went wrong"}`
+        );
+      } else {
+        setError("Unknown error occurred.");
+      }
+    }
+  };
+
+  fetchSubadmins();
+}, []);
 
   return (
     <div className="p-4 md:p-8">
